@@ -6,13 +6,27 @@
 {
     "name": "Partner unique reference",
     "summary": "Add an unique constraint to partner ref field",
+<<<<<<< HEAD
     "version": "17.0.1.0.0",
+=======
+    "version": "12.0.1.0.2",
+>>>>>>> 55fd4e49b (Store partner_ref_unique to allow triggering the error updating res.company)
     "category": "Customer Relationship Management",
     "website": "https://github.com/OCA/partner-contact",
     "author": "Tecnativa, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "application": False,
     "installable": True,
+<<<<<<< HEAD
     "depends": ["base"],
     "data": ["views/res_company_view.xml"],
+=======
+    "pre_init_hook": "pre_init_hook",
+    "depends": [
+        "base",
+    ],
+    "data": [
+        "views/res_company_view.xml",
+    ],
+>>>>>>> 55fd4e49b (Store partner_ref_unique to allow triggering the error updating res.company)
 }
