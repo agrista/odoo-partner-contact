@@ -148,6 +148,7 @@ Contributors
 * Stéphane Bidoul <stephane.bidoul@acsone.eu>
 * Ronald Portier <ronald@therp.nl>
 * George Daramouskas <gdaramouskas@therp.nl>
+* Ross Savage <ross.savage@agrista.com>
 
 Maintainers
 ~~~~~~~~~~~

@@ -13,14 +13,14 @@ _logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    @api.multi
-    def browse(self, arg=None, prefetch=None):
-        for tab in self._get_tabs():
-            fieldname = tab.get_fieldname()
-            if fieldname not in self._fields:
-                # Check this for performance reasons.
-                self.add_field(tab)
-        return super(ResPartner, self).browse(arg=arg, prefetch=prefetch)
+    def browse(self, ids=None):
+        if "update_relation_tab" in self.env.context:
+            for tab in self._get_tabs():
+                fieldname = tab.get_fieldname()
+                if fieldname not in self._fields:
+                    # Check this for performance reasons.
+                    self.add_field(tab)
+        return super(ResPartner, self).browse(ids=ids)
 
     @api.model
     def fields_view_get(
@@ -67,12 +67,12 @@ class ResPartner(models.Model):
             last_page = tab_page  # Keep ordering of tabs
         return extra_fields
 
-    @api.depends("is_company", "category_id")
     def _compute_tabs_visibility(self):
         """Compute for all tabs wether they should be visible."""
-        for tab in self._get_tabs():  # get all tabs
-            for this in self:
-                this[tab.get_visible_fieldname()] = tab.compute_visibility(this)
+        if "update_relation_tab" in self.env.context:
+            for tab in self._get_tabs():  # get all tabs
+                for this in self:
+                    this[tab.get_visible_fieldname()] = tab.compute_visibility(this)
 
     def _get_tabs(self):
         tab_model = self.env["res.partner.tab"]
@@ -86,7 +86,9 @@ class ResPartner(models.Model):
         # Visible field determines wether first field will be visible.
         # This is because domains on many2many no longer work in 9.0
         # and above.
-        visible_field = fields.Boolean(compute="_compute_tabs_visibility")
+        visible_field = fields.Boolean(
+            compute="_compute_tabs_visibility", depends=("is_company", "category_id",)
+        )
         self._add_field(tab.get_visible_fieldname(), visible_field)
         if visible_field not in self._field_computed:
             self._field_computed[visible_field] = [visible_field]

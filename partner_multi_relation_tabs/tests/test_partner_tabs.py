@@ -30,7 +30,9 @@ class TestPartnerTabs(common.TestCommon):
         field = tree.xpath('//field[@name="%s"]' % fieldname)
         self.assertTrue(
             field,
-            "Tab field {} does not exist in {}.".format(fieldname, etree.tostring(tree)),
+            "Tab field {} does not exist in {}.".format(
+                fieldname, etree.tostring(tree)
+            ),
         )
         # There should be no effect on the tree view:
         view = self.partner_model.with_context().fields_view_get(view_type="tree")
@@ -38,7 +40,9 @@ class TestPartnerTabs(common.TestCommon):
         field = tree.xpath('//field[@name="%s"]' % fieldname)
         self.assertFalse(
             field,
-            "Tab field {} should not exist in {}.".format(fieldname, etree.tostring(tree)),
+            "Tab field {} should not exist in {}.".format(
+                fieldname, etree.tostring(tree)
+            ),
         )
 
     def test_view_without_pages(self):

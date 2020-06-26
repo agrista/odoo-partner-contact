@@ -20,7 +20,6 @@ class ResPartnerRelationType(models.Model):
         help="Tab in which inverse relations will be visible on partner.",
     )
 
-    @api.multi
     @api.constrains("contact_type_left", "partner_category_left", "tab_left_id")
     def _check_tab_left(self):
         """Conditions for left partner should be consistent with tab."""
@@ -41,7 +40,6 @@ class ResPartnerRelationType(models.Model):
                     _("Partner category left not compatible with left tab")
                 )
 
-    @api.multi
     @api.constrains("contact_type_right", "partner_category_right", "tab_right_id")
     def _check_tab_right(self):
         """Conditions for right partner should be consistent with tab."""
@@ -61,3 +59,12 @@ class ResPartnerRelationType(models.Model):
                 raise ValidationError(
                     _("Partner category right not compatible with right tab")
                 )
+
+    def _update_right_vals(self, vals):
+        """Make sure that on symmetric relations, right vals follow left vals.
+
+        @attention: original method only handles properties ending with _left
+                    and we need to update tab_right_id as well
+        """
+        vals["tab_right_id"] = vals.get("tab_left_id", self["tab_left_id"])
+        super(ResPartnerRelationType, self)._update_right_vals(vals)

@@ -3,8 +3,8 @@
 from odoo import api, fields, models
 
 
-class ResPartnerRelationAll(models.AbstractModel):
-    """Abstract model to show each relation from two sides."""
+class ResPartnerRelationAll(models.Model):
+    """Model to show each relation from two sides."""
 
     _inherit = "res.partner.relation.all"
 

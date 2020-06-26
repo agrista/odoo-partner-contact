@@ -51,7 +51,6 @@ class ResPartnerTab(models.Model):
                 _("You can not both specify partner_ids and other criteria.")
             )
 
-    @api.multi
     def update_types(self, vals=None):
         """Update types on write or unlink.
 
@@ -78,7 +77,6 @@ class ResPartnerTab(models.Model):
                     ):
                         relation_type.write({side_tab: False})
 
-    @api.multi
     def write(self, vals):
         """Remove tab from types no longer satifying criteria."""
         if vals.get("contact_type", False) or vals.get("partner_category_id", False):
@@ -86,7 +84,6 @@ class ResPartnerTab(models.Model):
         result = super(ResPartnerTab, self).write(vals)
         return result
 
-    @api.multi
     def unlink(self):
         """Unlink should first remove references."""
         self.update_types()

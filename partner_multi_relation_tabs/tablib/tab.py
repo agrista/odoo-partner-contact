@@ -5,7 +5,8 @@ import logging
 from lxml import etree
 
 from odoo import _
-from odoo.osv.orm import transfer_modifiers_to_node
+
+from odoo.addons.base.models.ir_ui_view import transfer_modifiers_to_node
 
 _logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
