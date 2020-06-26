@@ -7,7 +7,7 @@ import logging
 from psycopg2.extensions import AsIs
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import MissingError, ValidationError
 from odoo.tools import drop_view_if_exists
 
 _logger = logging.getLogger(__name__)
@@ -43,8 +43,8 @@ SELECT
 FROM res_partner_relation rel"""
 
 
-class ResPartnerRelationAll(models.AbstractModel):
-    """Abstract model to show each relation from two sides."""
+class ResPartnerRelationAll(models.Model):
+    """Model to show each relation from two sides."""
 
     _auto = False
     _log_access = False
@@ -395,6 +395,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         assert self.res_model == relation_model._name
         base_resource.write(vals)
 
+    @api.model
     def _get_type_selection_from_vals(self, vals):
         """Get type_selection_id straight from vals or compute from type_id.
         """
@@ -470,6 +471,9 @@ CREATE OR REPLACE VIEW %%(table)s AS
         """For model 'res.partner.relation' call unlink on underlying model.
         """
         for rec in self:
-            base_resource = rec.get_base_resource()
+            try:
+                base_resource = rec.get_base_resource()
+            except MissingError:
+                continue
             rec.unlink_resource(base_resource)
         return True

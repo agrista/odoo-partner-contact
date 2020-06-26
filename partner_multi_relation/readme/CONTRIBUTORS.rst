@@ -5,3 +5,4 @@
 * Bruno Joliveau <bruno.joliveau@savoirfairelinux.com>
 * Adriana Ierfino <adriana.ierfino@savoirfairelinux.com>
 * Numigi (tm) and all its contributors (https://bit.ly/numigiens)
+* Ross Savage <ross.savage@agrista.com>

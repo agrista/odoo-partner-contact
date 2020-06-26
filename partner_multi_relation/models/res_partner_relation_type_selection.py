@@ -84,7 +84,7 @@ CREATE OR REPLACE VIEW %(table)s AS
      id * 2 AS id,
      id AS type_id,
      name AS name,
-     FALSE AS is_inverse,
+     False AS is_inverse,
      contact_type_left AS contact_type_this,
      contact_type_right AS contact_type_other,
      partner_category_left AS partner_category_this,
@@ -94,18 +94,18 @@ CREATE OR REPLACE VIEW %(table)s AS
      (id * 2) + 1,
      id,
      name_inverse,
-     TRUE,
+     True,
      contact_type_right,
      contact_type_left,
      partner_category_right,
      partner_category_left
      FROM %(underlying_table)s
-     WHERE NOT is_symmetric
+     WHERE not is_symmetric
  )
  SELECT
      bas.*,
      typ.allow_self,
-     typ.IS_SYMMETRIC
+     typ.is_symmetric
      %(additional_view_fields)s
  FROM selection_type bas
  JOIN res_partner_relation_type typ ON (bas.type_id = typ.id)
