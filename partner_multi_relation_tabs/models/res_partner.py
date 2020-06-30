@@ -69,10 +69,9 @@ class ResPartner(models.Model):
 
     def _compute_tabs_visibility(self):
         """Compute for all tabs wether they should be visible."""
-        if "update_relation_tab" in self.env.context:
-            for tab in self._get_tabs():  # get all tabs
-                for this in self:
-                    this[tab.get_visible_fieldname()] = tab.compute_visibility(this)
+        for tab in self._get_tabs():  # get all tabs
+            for this in self:
+                this[tab.get_visible_fieldname()] = tab.compute_visibility(this)
 
     def _get_tabs(self):
         tab_model = self.env["res.partner.tab"]
