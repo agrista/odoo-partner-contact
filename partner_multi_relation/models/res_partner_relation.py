@@ -41,6 +41,10 @@ class ResPartnerRelation(models.Model):
     )
     date_start = fields.Date("Starting date")
     date_end = fields.Date("Ending date")
+    active = fields.Boolean(
+        string="Active",
+        required=True,
+    )
 
     @api.model
     def create(self, vals):
@@ -120,7 +124,7 @@ class ResPartnerRelation(models.Model):
                     )
 
     @api.constrains(
-        "left_partner_id", "type_id", "right_partner_id", "date_start", "date_end",
+        "left_partner_id", "type_id", "right_partner_id", "date_start", "date_end", "active",
     )
     def _check_relation_uniqueness(self):
         """Forbid multiple active relations of the same type between the same

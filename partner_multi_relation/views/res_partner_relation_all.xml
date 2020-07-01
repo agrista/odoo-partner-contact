@@ -5,7 +5,7 @@
         <field name="arch" type="xml">
             <tree
                 string="Partner Relations"
-                decoration-muted="not active"
+                decoration-muted="date_end &lt; current_date"
                 decoration-info="date_start &gt; current_date"
                 editable="top"
             >
@@ -26,7 +26,7 @@
                 />
                 <field name="date_start" />
                 <field name="date_end" />
-                <field name="active" invisible="1" />
+                <field name="active" />
             </tree>
         </field>
     </record>

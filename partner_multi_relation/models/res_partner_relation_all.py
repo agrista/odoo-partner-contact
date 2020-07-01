@@ -23,6 +23,7 @@ SELECT
     rel.type_id,
     rel.date_start,
     rel.date_end,
+    rel.active,
     %(is_inverse)s AS is_inverse
     %(extra_additional_columns)s
 FROM res_partner_relation rel"""
@@ -38,6 +39,7 @@ SELECT
     rel.type_id,
     rel.date_start,
     rel.date_end,
+    rel.active,
     %(is_inverse)s AS is_inverse
     %(extra_additional_columns)s
 FROM res_partner_relation rel"""
@@ -90,8 +92,8 @@ class ResPartnerRelationAll(models.Model):
     )
     active = fields.Boolean(
         string="Active",
-        readonly=True,
-        help="Records with date_end in the past are inactive",
+        default=True,
+        help="Whether the record is actively shown",
     )
     any_partner_id = fields.Many2many(
         comodel_name="res.partner",
@@ -148,8 +150,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
          WHEN NOT bas.is_inverse OR typ.is_symmetric
          THEN bas.type_id * 2
          ELSE (bas.type_id * 2) + 1
-     END as type_selection_id,
-     (bas.date_end IS NULL OR bas.date_end >= current_date) AS active
+     END as type_selection_id
      %%(additional_view_fields)s
  FROM base_selection bas
  JOIN res_partner_relation_type typ ON (bas.type_id = typ.id)

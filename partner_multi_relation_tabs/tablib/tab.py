@@ -44,6 +44,8 @@ class Tab(object):
         )
         tab_page.append(field)
         tree = etree.Element("tree", editable="bottom")
+        tree.set("decoration-muted", "date_end < current_date")
+        tree.set("decoration-info", "date_start > current_date")
         field.append(tree)
         # Now add fields for the editable tree view in the tab.
         type_field = etree.Element(
