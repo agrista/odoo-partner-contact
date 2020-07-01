@@ -43,6 +43,7 @@ class ResPartnerRelation(models.Model):
     date_end = fields.Date("Ending date")
     active = fields.Boolean(
         string="Active",
+        default=True,
         required=True,
     )
 
