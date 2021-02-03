@@ -29,24 +29,24 @@ class ResPartner(models.Model):
     )
     search_relation_type_id = fields.Many2one(
         comodel_name="res.partner.relation.type.selection",
-        compute=lambda self: None,
+        compute=lambda self: self.update({"search_relation_type_id": None}),
         search="_search_relation_type_id",
         string="Has relation of type",
     )
     search_relation_partner_id = fields.Many2one(
         comodel_name="res.partner",
-        compute=lambda self: None,
+        compute=lambda self: self.update({"search_relation_partner_id": None}),
         search="_search_related_partner_id",
         string="Has relation with",
     )
     search_relation_date = fields.Date(
-        compute=lambda self: None,
+        compute=lambda self: self.update({"search_relation_date": None}),
         search="_search_relation_date",
         string="Relation valid",
     )
     search_relation_partner_category_id = fields.Many2one(
         comodel_name="res.partner.category",
-        compute=lambda self: None,
+        compute=lambda self: self.update({"search_relation_partner_category_id": None}),
         search="_search_related_partner_category_id",
         string="Has relation with a partner in category",
     )
@@ -84,7 +84,7 @@ class ResPartner(models.Model):
             relation_type_selection += type_selection_model.browse(value)
         elif operator == "!=" and isinstance(value, numbers.Integral):
             relation_type_selection = type_selection_model.search(
-                [("id", operator, value),]
+                [("id", operator, value)]
             )
         else:
             relation_type_selection = type_selection_model.search(
@@ -100,7 +100,7 @@ class ResPartner(models.Model):
             result = OR(
                 [
                     result,
-                    [("relation_all_ids.type_selection_id.id", "=", relation_type.id),],
+                    [("relation_all_ids.type_selection_id.id", "=", relation_type.id)],
                 ]
             )
         return result
@@ -109,9 +109,7 @@ class ResPartner(models.Model):
     def _search_related_partner_id(self, operator, value):
         """Find partner based on relation with other partner."""
         # pylint: disable=no-self-use
-        return [
-            ("relation_all_ids.other_partner_id", operator, value),
-        ]
+        return [("relation_all_ids.other_partner_id", operator, value)]
 
     @api.model
     def _search_relation_date(self, operator, value):
@@ -131,9 +129,7 @@ class ResPartner(models.Model):
     def _search_related_partner_category_id(self, operator, value):
         """Search for partner related to a partner with search category."""
         # pylint: disable=no-self-use
-        return [
-            ("relation_all_ids.other_partner_id.category_id", operator, value),
-        ]
+        return [("relation_all_ids.other_partner_id.category_id", operator, value)]
 
     @api.model
     def search(self, args, offset=0, limit=None, order=None, count=False):
@@ -153,9 +149,7 @@ class ResPartner(models.Model):
                     date_args = []
                     break
                 if not date_args:
-                    date_args = [
-                        ("search_relation_date", "=", fields.Date.today()),
-                    ]
+                    date_args = [("search_relation_date", "=", fields.Date.today())]
         # because of auto_join, we have to do the active test by hand
         active_args = []
         if self.env.context.get("active_test", True):

@@ -1,6 +1,6 @@
 # Copyright 2015 Camptocamp SA
 # Copyright 2016 Therp BV
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 from odoo import fields
 from odoo.exceptions import ValidationError
 
@@ -38,7 +38,7 @@ class TestPartnerSearch(TestPartnerRelationCommon):
         """Test searching on related partner."""
         self._create_company2person_relation()
         partners = self.partner_model.search(
-            [("search_relation_partner_id", "=", self.partner_02_company.id),]
+            [("search_relation_partner_id", "=", self.partner_02_company.id)]
         )
         self.assertTrue(self.partner_01_person in partners)
 
@@ -46,7 +46,7 @@ class TestPartnerSearch(TestPartnerRelationCommon):
         """Test searching on relations valid on a certain date."""
         self._create_company2person_relation()
         partners = self.partner_model.search(
-            [("search_relation_date", "=", fields.Date.today()),]
+            [("search_relation_date", "=", fields.Date.today())]
         )
         self.assertTrue(self.partner_01_person in partners)
         self.assertTrue(self.partner_02_company in partners)
@@ -55,7 +55,7 @@ class TestPartnerSearch(TestPartnerRelationCommon):
         """Test searching for partner left or right."""
         self._create_company2person_relation()
         both_relations = self.relation_all_model.search(
-            [("any_partner_id", "=", self.partner_02_company.id),]
+            [("any_partner_id", "=", self.partner_02_company.id)]
         )
         self.assertEqual(len(both_relations), 2)
 

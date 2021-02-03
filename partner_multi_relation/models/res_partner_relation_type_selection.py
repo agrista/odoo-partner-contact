@@ -35,26 +35,26 @@ class ResPartnerRelationTypeSelection(models.Model):
         rprt_model = self.env["res.partner.relation.type"]
         return rprt_model.get_partner_types()
 
-    type_id = fields.Many2one(comodel_name="res.partner.relation.type", string="Type",)
+    type_id = fields.Many2one(comodel_name="res.partner.relation.type", string="Type")
     name = fields.Char("Name")
     contact_type_this = fields.Selection(
-        selection="get_partner_types", string="Current record's partner type",
+        selection="get_partner_types", string="Current record's partner type"
     )
     is_inverse = fields.Boolean(
         string="Is reverse type?",
         help="Inverse relations are from right to left partner.",
     )
     contact_type_other = fields.Selection(
-        selection="get_partner_types", string="Other record's partner type",
+        selection="get_partner_types", string="Other record's partner type"
     )
     partner_category_this = fields.Many2one(
-        comodel_name="res.partner.category", string="Current record's category",
+        comodel_name="res.partner.category", string="Current record's category"
     )
     partner_category_other = fields.Many2one(
-        comodel_name="res.partner.category", string="Other record's category",
+        comodel_name="res.partner.category", string="Other record's category"
     )
-    allow_self = fields.Boolean(string="Reflexive",)
-    is_symmetric = fields.Boolean(string="Symmetric",)
+    allow_self = fields.Boolean(string="Reflexive")
+    is_symmetric = fields.Boolean(string="Symmetric")
 
     def _get_additional_view_fields(self):
         """Allow inherit models to add fields to view.

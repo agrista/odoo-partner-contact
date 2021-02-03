@@ -3,12 +3,7 @@
     <record id="tree_res_partner_relation_all" model="ir.ui.view">
         <field name="model">res.partner.relation.all</field>
         <field name="arch" type="xml">
-            <tree
-                string="Partner Relations"
-                decoration-muted="date_end &lt; current_date"
-                decoration-info="date_start &gt; current_date"
-                editable="top"
-            >
+            <tree string="Partner Relations" editable="top">
                 <field
                     name="this_partner_id"
                     required="True"
@@ -26,7 +21,7 @@
                 />
                 <field name="date_start" />
                 <field name="date_end" />
-                <field name="active" />
+                <field name="active" invisible="1" />
             </tree>
         </field>
     </record>
@@ -82,10 +77,10 @@
         <field name="context">{'active_test': 0}</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                    Record and track your partners' relations. Relations may
-                    be linked to other partners with a type either directly
-                    or inversely.
-                </p>
+                Record and track your partners' relations. Relations may
+                be linked to other partners with a type either directly
+                or inversely.
+            </p>
         </field>
     </record>
 </odoo>

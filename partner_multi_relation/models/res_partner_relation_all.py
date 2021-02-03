@@ -12,6 +12,7 @@ from odoo.tools import drop_view_if_exists
 
 _logger = logging.getLogger(__name__)
 
+
 # Register relations
 RELATIONS_SQL = """\
 SELECT
@@ -23,8 +24,7 @@ SELECT
     rel.type_id,
     rel.date_start,
     rel.date_end,
-    rel.active,
-    %(is_inverse)s AS is_inverse
+    %(is_inverse)s as is_inverse
     %(extra_additional_columns)s
 FROM res_partner_relation rel"""
 
@@ -39,8 +39,7 @@ SELECT
     rel.type_id,
     rel.date_start,
     rel.date_end,
-    rel.active,
-    %(is_inverse)s AS is_inverse
+    %(is_inverse)s as is_inverse
     %(extra_additional_columns)s
 FROM res_partner_relation rel"""
 
@@ -92,13 +91,13 @@ class ResPartnerRelationAll(models.Model):
     )
     active = fields.Boolean(
         string="Active",
-        default=True,
-        help="Whether the record is actively shown",
+        readonly=True,
+        help="Records with date_end in the past are inactive",
     )
     any_partner_id = fields.Many2many(
         comodel_name="res.partner",
         string="Partner",
-        compute=lambda self: None,
+        compute=lambda self: self.update({"any_partner_id": None}),
         search="_search_any_partner_id",
     )
 
@@ -150,7 +149,8 @@ CREATE OR REPLACE VIEW %%(table)s AS
          WHEN NOT bas.is_inverse OR typ.is_symmetric
          THEN bas.type_id * 2
          ELSE (bas.type_id * 2) + 1
-     END as type_selection_id
+     END as type_selection_id,
+     (bas.date_end IS NULL OR bas.date_end >= current_date) AS active
      %%(additional_view_fields)s
  FROM base_selection bas
  JOIN res_partner_relation_type typ ON (bas.type_id = typ.id)
@@ -395,6 +395,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         relation_model = self.env["res.partner.relation"]
         assert self.res_model == relation_model._name
         base_resource.write(vals)
+        base_resource.flush()
 
     @api.model
     def _get_type_selection_from_vals(self, vals):
@@ -413,8 +414,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         )
 
     def write(self, vals):
-        """For model 'res.partner.relation' call write on underlying model.
-        """
+        """For model 'res.partner.relation' call write on underlying model."""
         new_type_selection = self._get_type_selection_from_vals(vals)
         for rec in self:
             type_selection = new_type_selection or rec.type_selection_id
@@ -423,7 +423,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
             rec.write_resource(base_resource, vals)
         # Invalidate cache to make res.partner.relation.all reflect changes
         # in underlying res.partner.relation:
-        self.env.clear()
+        self.invalidate_cache(None, self.ids)
         return True
 
     @api.model

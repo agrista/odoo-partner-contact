@@ -20,19 +20,19 @@ class ResPartnerRelationType(models.Model):
     _description = "Partner Relation Type"
     _order = "name"
 
-    name = fields.Char(string="Name", required=True, translate=True,)
-    name_inverse = fields.Char(string="Inverse name", required=True, translate=True,)
+    name = fields.Char(string="Name", required=True, translate=True)
+    name_inverse = fields.Char(string="Inverse name", required=True, translate=True)
     contact_type_left = fields.Selection(
-        selection="get_partner_types", string="Left partner type",
+        selection="get_partner_types", string="Left partner type"
     )
     contact_type_right = fields.Selection(
-        selection="get_partner_types", string="Right partner type",
+        selection="get_partner_types", string="Right partner type"
     )
     partner_category_left = fields.Many2one(
-        comodel_name="res.partner.category", string="Left partner category",
+        comodel_name="res.partner.category", string="Left partner category"
     )
     partner_category_right = fields.Many2one(
-        comodel_name="res.partner.category", string="Right partner category",
+        comodel_name="res.partner.category", string="Right partner category"
     )
     allow_self = fields.Boolean(
         string="Reflexive",
@@ -60,10 +60,7 @@ class ResPartnerRelationType(models.Model):
     def get_partner_types(self):
         """A partner can be an organisation or an individual."""
         # pylint: disable=no-self-use
-        return [
-            ("c", _("Organisation")),
-            ("p", _("Person")),
-        ]
+        return [("c", _("Organisation")), ("p", _("Person"))]
 
     @api.model
     def _end_active_relations(self, relations):
@@ -124,10 +121,10 @@ class ResPartnerRelationType(models.Model):
             invalid_conditions = []
             for side in ["left", "right"]:
                 invalid_conditions = OR(
-                    [invalid_conditions, get_type_condition(vals, side),]
+                    [invalid_conditions, get_type_condition(vals, side)]
                 )
                 invalid_conditions = OR(
-                    [invalid_conditions, get_category_condition(vals, side),]
+                    [invalid_conditions, get_category_condition(vals, side)]
                 )
             if not invalid_conditions:
                 return
@@ -160,7 +157,7 @@ class ResPartnerRelationType(models.Model):
             WHERE left_partner_id = right_partner_id
             AND type_id = %(relation_type_id)s
             """,
-            {"relation_type_id": self.id,},
+            {"relation_type_id": self.id},
         )
         reflexive_relation_ids = [r[0] for r in self.env.cr.fetchall()]
         return self.env["res.partner.relation"].browse(reflexive_relation_ids)
@@ -258,6 +255,6 @@ class ResPartnerRelationType(models.Model):
             if rec.handle_invalid_onchange == "delete":
                 # Automatically delete relations, so existing relations
                 # do not prevent unlink of relation type:
-                relations = relation_model.search([("type_id", "=", rec.id),])
+                relations = relation_model.search([("type_id", "=", rec.id)])
                 relations.unlink()
         return super(ResPartnerRelationType, self).unlink()
