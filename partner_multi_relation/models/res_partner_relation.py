@@ -1,5 +1,5 @@
-# Copyright 2013-2017 Therp BV <http://therp.nl>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# Copyright 2013-2020 Therp BV <https://therp.nl>.
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 # pylint: disable=api-one-deprecated
 """Store relations (connections) between partners."""
 from odoo import _, api, fields, models
@@ -41,6 +41,17 @@ class ResPartnerRelation(models.Model):
     )
     date_start = fields.Date("Starting date")
     date_end = fields.Date("Ending date")
+
+    def name_get(self):
+        return {
+            this.id: "%s %s %s"
+            % (
+                this.left_partner_id.display_name,
+                this.type_id.display_name,
+                this.right_partner_id.display_name,
+            )
+            for this in self
+        }
 
     @api.model
     def create(self, vals):

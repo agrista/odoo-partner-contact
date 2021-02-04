@@ -1,5 +1,5 @@
-# Copyright 2013-2017 Therp BV <http://therp.nl>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# Copyright 2013-2020 Therp BV <https://therp.nl>.
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 """
 For the model defined here _auto is set to False to prevent creating a
 database file. The model is based on a SQL view based on
@@ -35,24 +35,24 @@ class ResPartnerRelationTypeSelection(models.Model):
         rprt_model = self.env["res.partner.relation.type"]
         return rprt_model.get_partner_types()
 
-    type_id = fields.Many2one(comodel_name="res.partner.relation.type", string="Type")
+    type_id = fields.Many2one(comodel_name="res.partner.relation.type",
+                              string="Type")
     name = fields.Char("Name")
-    contact_type_this = fields.Selection(
-        selection="get_partner_types", string="Current record's partner type"
-    )
     is_inverse = fields.Boolean(
         string="Is reverse type?",
         help="Inverse relations are from right to left partner.",
     )
-    contact_type_other = fields.Selection(
-        selection="get_partner_types", string="Other record's partner type"
+    contact_type_this = fields.Selection(
+        selection="get_partner_types",
+        string="Current record's partner type",
     )
+    contact_type_other = fields.Selection(selection="get_partner_types",
+                                          string="Other record's partner type")
     partner_category_this = fields.Many2one(
-        comodel_name="res.partner.category", string="Current record's category"
-    )
+        comodel_name="res.partner.category",
+        string="Current record's category")
     partner_category_other = fields.Many2one(
-        comodel_name="res.partner.category", string="Other record's category"
-    )
+        comodel_name="res.partner.category", string="Other record's category")
     allow_self = fields.Boolean(string="Reflexive")
     is_symmetric = fields.Boolean(string="Symmetric")
 
@@ -114,7 +114,8 @@ CREATE OR REPLACE VIEW %(table)s AS
             {
                 "table": AsIs(self._table),
                 "underlying_table": AsIs("res_partner_relation_type"),
-                "additional_view_fields": AsIs(self._get_additional_view_fields()),
+                "additional_view_fields": AsIs(
+                    self._get_additional_view_fields()),
                 "additional_tables": AsIs(self._get_additional_tables()),
             },
         )
@@ -122,17 +123,12 @@ CREATE OR REPLACE VIEW %(table)s AS
 
     def name_get(self):
         """Get name or name_inverse from underlying model."""
-        return [
-            (
-                this.id,
-                this.is_inverse
-                and this.type_id.name_inverse
-                or this.type_id.display_name,
-            )
-            for this in self
-        ]
+        return [(
+            this.id,
+            this.is_inverse and this.type_id.name_inverse
+            or this.type_id.display_name,
+        ) for this in self]
 
-    @api.model
     def name_search(self, name="", args=None, operator="ilike", limit=100):
         """Search for name or inverse name in underlying model."""
         # pylint: disable=no-value-for-parameter
@@ -141,7 +137,6 @@ CREATE OR REPLACE VIEW %(table)s AS
                 "|",
                 ("type_id.name", operator, name),
                 ("type_id.name_inverse", operator, name),
-            ]
-            + (args or []),
+            ] + (args or []),
             limit=limit,
         ).name_get()

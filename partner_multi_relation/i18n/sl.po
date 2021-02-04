@@ -20,7 +20,7 @@ msgstr ""
 "%100==4 ? 2 : 3);\n"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:240
 #, python-format
 msgid "%s partner incompatible with relation type."
 msgstr "Partner %s ni združljiv s tipom odnosa."
@@ -47,8 +47,8 @@ msgid "All relations with current partner"
 msgstr "Vsi odnosi s trenutnim partnerjem"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
-#: model:ir.model.fields.selection,name:partner_multi_relation.selection__res_partner_relation_type__handle_invalid_onchange__ignore
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:13
+#: selection:res.partner.relation.type,handle_invalid_onchange:0
 #, python-format
 msgid "Allow existing relations that do not fit changed conditions"
 msgstr "Dovoli obstoječa razmerja, ki ne ustrezajo spremenjenim pogojem."
@@ -81,8 +81,8 @@ msgid "Current record's partner type"
 msgstr "Tip partnerja na trenutnem zapisu"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
-#: model:ir.model.fields.selection,name:partner_multi_relation.selection__res_partner_relation_type__handle_invalid_onchange__delete
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:17
+#: selection:res.partner.relation.type,handle_invalid_onchange:0
 #, python-format
 msgid "Delete relations that do not fit changed conditions"
 msgstr "Izbriši razmerja, ki ne ustrezajo spremenjenim pogojem."
@@ -101,15 +101,15 @@ msgid "Display Name"
 msgstr "Prikazni naziv"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
-#: model:ir.model.fields.selection,name:partner_multi_relation.selection__res_partner_relation_type__handle_invalid_onchange__restrict
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:11
+#: selection:res.partner.relation.type,handle_invalid_onchange:0
 #, python-format
 msgid "Do not allow change that will result in invalid relations"
 msgstr "Ne dovoli sprememb, ki bi vodile v neveljavne odnose"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
-#: model:ir.model.fields.selection,name:partner_multi_relation.selection__res_partner_relation_type__handle_invalid_onchange__end
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:15
+#: selection:res.partner.relation.type,handle_invalid_onchange:0
 #, python-format
 msgid "End relations per today, if they do not fit changed conditions"
 msgstr "Zaključi razmerja do danes, ki ne ustrezajo spremenjenim pogojem"
@@ -121,7 +121,8 @@ msgid "Ending date"
 msgstr "Končni datum"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:237
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:315
 #, python-format
 msgid "Error!"
 msgstr "Napaka!"
@@ -257,13 +258,13 @@ msgid "Name"
 msgstr "Naziv"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:244
 #, python-format
 msgid "No %s partner available for relation type."
 msgstr "Ni partnerja %s na voljo za tip odnosa."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:448
 #, python-format
 msgid "No relation type specified in vals: %s."
 msgstr ""
@@ -275,7 +276,7 @@ msgid "One Partner"
 msgstr "En partner"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:82
 #, python-format
 msgid "Organisation"
 msgstr "Organizacija"
@@ -322,13 +323,13 @@ msgid "Partner relation"
 msgstr "Partnerski odnos"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation.py:115
 #, python-format
 msgid "Partners cannot have a relation with themselves."
 msgstr "Partnerji ne morejo biti v odnosu sami s seboj."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:83
 #, python-format
 msgid "Person"
 msgstr "Oseba"
@@ -342,8 +343,8 @@ msgstr "Lastnosti"
 #: model_terms:ir.actions.act_window,help:partner_multi_relation.action_res_partner_relation_all
 msgid ""
 "Record and track your partners' relations. Relations may\n"
-"                be linked to other partners with a type either directly\n"
-"                or inversely."
+"                    be linked to other partners with a type either directly\n"
+"                    or inversely."
 msgstr ""
 
 #. module: partner_multi_relation
@@ -358,7 +359,7 @@ msgid "Reflexive"
 msgstr "Povratni"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:196
 #, python-format
 msgid ""
 "Reflexivity could not be disabled for the relation type {relation_type}. "
@@ -384,7 +385,7 @@ msgid "Relation Types"
 msgstr "Tip odnosa"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:316
 #, python-format
 msgid "Relation type incompatible with selected partner(s)."
 msgstr "Tip odnosa nezdružljiv z izborom partnerja(ev)."
@@ -466,13 +467,13 @@ msgid "Symmetric"
 msgstr "Simetrični"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation.py:101
 #, python-format
 msgid "The %s partner does not have category %s."
 msgstr "Partner %s nima kategorije %s."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation.py:95
 #, python-format
 msgid "The %s partner is not applicable for this relation type."
 msgstr "Partner %s ni ustrezen za ta tip odnosa."
@@ -488,13 +489,13 @@ msgid "The id of the object in the model this relation is based on."
 msgstr ""
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation.py:62
 #, python-format
 msgid "The starting date cannot be after the ending date."
 msgstr "Začetni datum ne more biti za končnim datumom."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_type.py:165
 #, python-format
 msgid ""
 "There are already relations not satisfying the conditions for partner type "
@@ -504,7 +505,7 @@ msgstr ""
 "kategorijo."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation.py:154
 #, python-format
 msgid "There is already a similar relation with overlapping dates"
 msgstr "Podoben odnos s prekrivajočimi se datumi že obstaja."
@@ -532,7 +533,7 @@ msgid "Underlying Relation Type"
 msgstr "Tip partnerskega odnosa"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner.py:0
+#: code:addons/partner_multi_relation/models/res_partner.py:79
 #, python-format
 msgid "Unsupported search operator \"%s\""
 msgstr "Nepodprt iskalni operand \"%s\""
@@ -572,13 +573,13 @@ msgstr ""
 "Določite, kako naj se v primeru take situacije ravna."
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:289
 #, python-format
 msgid "other"
 msgstr "drugo"
 
 #. module: partner_multi_relation
-#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:0
+#: code:addons/partner_multi_relation/models/res_partner_relation_all.py:286
 #, python-format
 msgid "this"
 msgstr "ta"

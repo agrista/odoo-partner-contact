@@ -1,7 +1,8 @@
-# Copyright 2014-2018 Therp BV <http://therp.nl>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
-# pylint: disable=method-required-super
+# Copyright 2014-2020 Therp BV <https://therp.nl>.
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+# pylint: disable=method-required-super,no-self-use
 import collections
+import json
 import logging
 
 from psycopg2.extensions import AsIs
@@ -11,7 +12,6 @@ from odoo.exceptions import MissingError, ValidationError
 from odoo.tools import drop_view_if_exists
 
 _logger = logging.getLogger(__name__)
-
 
 # Register relations
 RELATIONS_SQL = """\
@@ -44,14 +44,46 @@ SELECT
 FROM res_partner_relation rel"""
 
 
-class ResPartnerRelationAll(models.Model):
-    """Model to show each relation from two sides."""
+class ResPartnerRelationAll(models.AbstractModel):
+    """Abstract model to show each relation from two sides."""
 
     _auto = False
     _log_access = False
     _name = "res.partner.relation.all"
     _description = "All (non-inverse + inverse) relations between partners"
     _order = "this_partner_id, type_selection_id, date_end desc, date_start desc"
+
+    def _compute_active(self):
+        """active is computed based on end-date."""
+        today = fields.Date.today()
+        for this in self:
+            if this.date_end and this.date_end <= today:
+                this.active = False
+                continue
+            this.active = True
+
+    def _search_active(self, operator, value):
+        """Return domain using date_start and date_end."""
+        assert value in (True, False)
+        if operator in ("!=", "<>"):
+            value = not value
+        today = fields.Date.today()
+        if value:  # Find active records.
+            return [
+                "&",
+                "|",
+                ("date_start", "=", False),
+                ("date_start", "<=", today),
+                "|",
+                ("date_end", "=", False),
+                ("date_end", ">=", today),
+            ]
+        # Find not active records.
+        return [
+            "|",
+            ("date_start", ">", today),
+            ("date_end", "<", today),
+        ]
 
     res_model = fields.Char(
         string="Resource Model",
@@ -65,12 +97,12 @@ class ResPartnerRelationAll(models.Model):
         required=True,
         help="The id of the object in the model this relation is based on.",
     )
-    this_partner_id = fields.Many2one(
-        comodel_name="res.partner", string="One Partner", required=True
-    )
-    other_partner_id = fields.Many2one(
-        comodel_name="res.partner", string="Other Partner", required=True
-    )
+    this_partner_id = fields.Many2one(comodel_name="res.partner",
+                                      string="One Partner",
+                                      required=True)
+    other_partner_id = fields.Many2one(comodel_name="res.partner",
+                                       string="Other Partner",
+                                       required=True)
     type_id = fields.Many2one(
         comodel_name="res.partner.relation.type",
         string="Underlying Relation Type",
@@ -91,17 +123,43 @@ class ResPartnerRelationAll(models.Model):
     )
     active = fields.Boolean(
         string="Active",
+        compute="_compute_active",
+        search="_search_active",
         readonly=True,
         help="Records with date_end in the past are inactive",
     )
     any_partner_id = fields.Many2many(
         comodel_name="res.partner",
         string="Partner",
-        compute=lambda self: self.update({"any_partner_id": None}),
+        compute=lambda self: None,
         search="_search_any_partner_id",
     )
+    # Helper fields to set domain
+    this_partner_id_domain = fields.Char(compute="_compute_domains",
+                                         readonly=True,
+                                         store=False)
+    type_selection_id_domain = fields.Char(compute="_compute_domains",
+                                           readonly=True,
+                                           store=False)
+    other_partner_id_domain = fields.Char(compute="_compute_domains",
+                                          readonly=True,
+                                          store=False)
 
-    def register_specification(self, register, base_name, is_inverse, select_sql):
+    @api.depends("this_partner_id", "type_selection_id", "other_partner_id")
+    def _compute_domains(self):
+        def json_dump(this, result, fieldname):
+            this["%s_domain" % fieldname] = json.dumps(
+                result["domain"][fieldname])
+
+        for this in self:
+            result = this.onchange_type_selection_id()
+            json_dump(this, result, "this_partner_id")
+            json_dump(this, result, "other_partner_id")
+            result = this.onchange_partner_id()
+            json_dump(this, result, "type_selection_id")
+
+    def register_specification(self, register, base_name, is_inverse,
+                               select_sql):
         _last_key_offset = register["_lastkey"]
         key_name = base_name + (is_inverse and "_inverse" or "")
         assert key_name not in register
@@ -114,11 +172,13 @@ class ResPartnerRelationAll(models.Model):
             base_name=base_name,
             is_inverse=is_inverse,
             key_offset=_last_key_offset,
-            select_sql=select_sql
-            % {
-                "key_offset": _last_key_offset,
-                "is_inverse": is_inverse,
-                "extra_additional_columns": self._get_additional_relation_columns(),
+            select_sql=select_sql % {
+                "key_offset":
+                _last_key_offset,
+                "is_inverse":
+                is_inverse,
+                "extra_additional_columns":
+                self._get_additional_relation_columns(),
             },
         )
 
@@ -126,7 +186,8 @@ class ResPartnerRelationAll(models.Model):
         register = collections.OrderedDict()
         register["_lastkey"] = -1
         self.register_specification(register, "relation", False, RELATIONS_SQL)
-        self.register_specification(register, "relation", True, RELATIONS_SQL_INVERSE)
+        self.register_specification(register, "relation", True,
+                                    RELATIONS_SQL_INVERSE)
         return register
 
     def get_select_specification(self, base_name, is_inverse):
@@ -137,9 +198,10 @@ class ResPartnerRelationAll(models.Model):
     def _get_statement(self):
         """Allow other modules to add to statement."""
         register = self.get_register()
-        union_select = " UNION ".join(
-            [register[key]["select_sql"] for key in register if key != "_lastkey"]
-        )
+        union_select = " UNION ".join([
+            register[key]["select_sql"] for key in register
+            if key != "_lastkey"
+        ])
         return """\
 CREATE OR REPLACE VIEW %%(table)s AS
      WITH base_selection AS (%(union_select)s)
@@ -161,6 +223,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
 
     def _get_padding(self):
         """Utility function to define padding in one place."""
+        # pylint: disable=no-self-use
         return 100
 
     def _get_additional_relation_columns(self):
@@ -180,6 +243,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         prepended by a comma, like so:
             return ', typ.allow_self, typ.left_partner_category'
         """
+        # pylint: disable=no-self-use
         return ""
 
     def _get_additional_tables(self):
@@ -188,6 +252,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         Example:
             return 'JOIN type_extention ext ON (bas.type_id = ext.id)'
         """
+        # pylint: disable=no-self-use
         return ""
 
     def _auto_init(self):
@@ -198,7 +263,8 @@ CREATE OR REPLACE VIEW %%(table)s AS
             {
                 "table": AsIs(self._table),
                 "padding": self._get_padding(),
-                "additional_view_fields": AsIs(self._get_additional_view_fields()),
+                "additional_view_fields": AsIs(
+                    self._get_additional_view_fields()),
                 "additional_tables": AsIs(self._get_additional_tables()),
             },
         )
@@ -216,8 +282,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
 
     def name_get(self):
         return {
-            this.id: "%s %s %s"
-            % (
+            this.id: "%s %s %s" % (
                 this.this_partner_id.name,
                 this.type_selection_id.display_name,
                 this.other_partner_id.name,
@@ -228,7 +293,6 @@ CREATE OR REPLACE VIEW %%(table)s AS
     @api.onchange("type_selection_id")
     def onchange_type_selection_id(self):
         """Add domain on partners according to category and contact_type."""
-
         def check_partner_domain(partner, partner_domain, side):
             """Check wether partner_domain results in empty selection
             for partner, or wrong selection of partner already selected.
@@ -244,32 +308,35 @@ CREATE OR REPLACE VIEW %%(table)s AS
                 warning["title"] = _("Error!")
                 if partner:
                     warning["message"] = (
-                        _("%s partner incompatible with relation type.") % side.title()
-                    )
+                        _("%s partner incompatible with relation type.") %
+                        side.title())
                 else:
                     warning["message"] = (
-                        _("No %s partner available for relation type.") % side
-                    )
+                        _("No %s partner available for relation type.") % side)
             return warning
 
-        this_partner_domain = []
-        other_partner_domain = []
+        # For the moment only support relations between contact partners.
+        # We might make this more flexible in the future, but then we would
+        # need to add the allowed contact types to the definition of the
+        # relation type.
+        this_partner_domain = [("type", "=", "contact")]
+        other_partner_domain = [("type", "=", "contact")]
         if self.type_selection_id.contact_type_this:
             this_partner_domain.append(
-                ("is_company", "=", self.type_selection_id.contact_type_this == "c")
-            )
+                ("is_company", "=",
+                 self.type_selection_id.contact_type_this == "c"))
         if self.type_selection_id.partner_category_this:
             this_partner_domain.append(
-                ("category_id", "in", self.type_selection_id.partner_category_this.ids)
-            )
+                ("category_id", "in",
+                 self.type_selection_id.partner_category_this.ids))
         if self.type_selection_id.contact_type_other:
             other_partner_domain.append(
-                ("is_company", "=", self.type_selection_id.contact_type_other == "c")
-            )
+                ("is_company", "=",
+                 self.type_selection_id.contact_type_other == "c"))
         if self.type_selection_id.partner_category_other:
             other_partner_domain.append(
-                ("category_id", "in", self.type_selection_id.partner_category_other.ids)
-            )
+                ("category_id", "in",
+                 self.type_selection_id.partner_category_other.ids))
         result = {
             "domain": {
                 "this_partner_id": this_partner_domain,
@@ -288,16 +355,14 @@ CREATE OR REPLACE VIEW %%(table)s AS
                     "default_this_partner_id" in self.env.context
                     and self.env.context["default_this_partner_id"]
                     or "active_id" in self.env.context
-                    and self.env.context["active_id"]
-                    or False
-                )
+                    and self.env.context["active_id"] or False)
                 if this_partner_id:
                     this_partner = partner_model.browse(this_partner_id)
-            warning = check_partner_domain(this_partner, this_partner_domain, _("this"))
+            warning = check_partner_domain(this_partner, this_partner_domain,
+                                           _("this"))
         if not warning and other_partner_domain:
-            warning = check_partner_domain(
-                self.other_partner_id, other_partner_domain, _("other")
-            )
+            warning = check_partner_domain(self.other_partner_id,
+                                           other_partner_domain, _("other"))
         if warning:
             result["warning"] = warning
         return result
@@ -305,7 +370,6 @@ CREATE OR REPLACE VIEW %%(table)s AS
     @api.onchange("this_partner_id", "other_partner_id")
     def onchange_partner_id(self):
         """Set domain on type_selection_id based on partner(s) selected."""
-
         def check_type_selection_domain(type_selection_domain):
             """If type_selection_id already selected, check wether it
             is compatible with the computed type_selection_domain. An empty
@@ -315,16 +379,14 @@ CREATE OR REPLACE VIEW %%(table)s AS
             warning = {}
             if not (type_selection_domain and self.type_selection_id):
                 return warning
-            test_domain = [
-                ("id", "=", self.type_selection_id.id)
-            ] + type_selection_domain
+            test_domain = [("id", "=", self.type_selection_id.id)
+                           ] + type_selection_domain
             type_model = self.env["res.partner.relation.type.selection"]
             types_found = type_model.search(test_domain, limit=1)
             if not types_found:
                 warning["title"] = _("Error!")
                 warning["message"] = _(
-                    "Relation type incompatible with selected partner(s)."
-                )
+                    "Relation type incompatible with selected partner(s).")
             return warning
 
         type_selection_domain = []
@@ -332,19 +394,23 @@ CREATE OR REPLACE VIEW %%(table)s AS
             type_selection_domain += [
                 "|",
                 ("contact_type_this", "=", False),
-                ("contact_type_this", "=", self.this_partner_id.get_partner_type()),
+                ("contact_type_this", "=",
+                 self.this_partner_id.get_partner_type()),
                 "|",
                 ("partner_category_this", "=", False),
-                ("partner_category_this", "in", self.this_partner_id.category_id.ids),
+                ("partner_category_this", "in",
+                 self.this_partner_id.category_id.ids),
             ]
         if self.other_partner_id:
             type_selection_domain += [
                 "|",
                 ("contact_type_other", "=", False),
-                ("contact_type_other", "=", self.other_partner_id.get_partner_type()),
+                ("contact_type_other", "=",
+                 self.other_partner_id.get_partner_type()),
                 "|",
                 ("partner_category_other", "=", False),
-                ("partner_category_other", "in", self.other_partner_id.category_id.ids),
+                ("partner_category_other", "in",
+                 self.other_partner_id.category_id.ids),
             ]
         result = {"domain": {"type_selection_id": type_selection_domain}}
         # Check wether domain results in no choice or wrong choice for
@@ -355,27 +421,33 @@ CREATE OR REPLACE VIEW %%(table)s AS
         return result
 
     @api.model
-    def _correct_vals(self, vals, type_selection):
+    def _correct_vals(self, original_vals, type_selection):
         """Fill left and right partner from this and other partner."""
-        vals = vals.copy()
+        vals = original_vals.copy()
+        context = self.env.context
         if "type_selection_id" in vals:
             vals["type_id"] = type_selection.type_id.id
         if type_selection.is_inverse:
-            if "this_partner_id" in vals:
-                vals["right_partner_id"] = vals["this_partner_id"]
-            if "other_partner_id" in vals:
-                vals["left_partner_id"] = vals["other_partner_id"]
+            vals["right_partner_id"] = original_vals.get(
+                "this_partner_id", self.this_partner_id.id
+                or context.get("active_id"))
+            vals["left_partner_id"] = vals.get("other_partner_id",
+                                               self.other_partner_id.id)
         else:
-            if "this_partner_id" in vals:
-                vals["left_partner_id"] = vals["this_partner_id"]
-            if "other_partner_id" in vals:
-                vals["right_partner_id"] = vals["other_partner_id"]
+            vals["left_partner_id"] = original_vals.get(
+                "this_partner_id", self.this_partner_id.id
+                or context.get("active_id"))
+            vals["right_partner_id"] = vals.get("other_partner_id",
+                                                self.other_partner_id.id)
         # Delete values not in underlying table:
         for key in (
-            "this_partner_id",
-            "type_selection_id",
-            "other_partner_id",
-            "is_inverse",
+                "this_partner_id",
+                "type_selection_id",
+                "other_partner_id",
+                "this_partner_id_domain",
+                "type_selection_id_domain",
+                "other_partner_id_domain",
+                "is_inverse",
         ):
             if key in vals:
                 del vals[key]
@@ -395,7 +467,6 @@ CREATE OR REPLACE VIEW %%(table)s AS
         relation_model = self.env["res.partner.relation"]
         assert self.res_model == relation_model._name
         base_resource.write(vals)
-        base_resource.flush()
 
     @api.model
     def _get_type_selection_from_vals(self, vals):
@@ -406,23 +477,26 @@ CREATE OR REPLACE VIEW %%(table)s AS
             if type_id:
                 is_inverse = vals.get("is_inverse")
                 type_selection_id = type_id * 2 + (is_inverse and 1 or 0)
-        return (
-            type_selection_id
-            and self.type_selection_id.browse(type_selection_id)
-            or False
-        )
+        return (type_selection_id
+                and self.type_selection_id.browse(type_selection_id) or False)
 
     def write(self, vals):
         """For model 'res.partner.relation' call write on underlying model."""
+        if "active" in vals:
+            active = vals.pop("active")
+            if active:
+                vals["date_end"] = False
+            else:
+                vals["date_end"] = fields.Date.today()
         new_type_selection = self._get_type_selection_from_vals(vals)
-        for rec in self:
-            type_selection = new_type_selection or rec.type_selection_id
-            vals = rec._correct_vals(vals, type_selection)
-            base_resource = rec.get_base_resource()
-            rec.write_resource(base_resource, vals)
+        for this in self:
+            type_selection = new_type_selection or this.type_selection_id
+            vals = this._correct_vals(vals, type_selection)
+            base_resource = this.get_base_resource()
+            this.write_resource(base_resource, vals)
         # Invalidate cache to make res.partner.relation.all reflect changes
         # in underlying res.partner.relation:
-        self.invalidate_cache(None, self.ids)
+        self.env.clear()
         return True
 
     @api.model
@@ -435,8 +509,7 @@ CREATE OR REPLACE VIEW %%(table)s AS
         """Compute id. Allow for enhancements in inherit model."""
         base_name = self._compute_base_name(type_selection)
         key_offset = self.get_select_specification(
-            base_name, type_selection.is_inverse
-        )["key_offset"]
+            base_name, type_selection.is_inverse)["key_offset"]
         return base_resource.id * self._get_padding() + key_offset
 
     @api.model
@@ -452,7 +525,8 @@ CREATE OR REPLACE VIEW %%(table)s AS
         """
         type_selection = self._get_type_selection_from_vals(vals)
         if not type_selection:  # Should not happen
-            raise ValidationError(_("No relation type specified in vals: %s.") % vals)
+            raise ValidationError(
+                _("No relation type specified in vals: %s.") % vals)
         vals = self._correct_vals(vals, type_selection)
         base_resource = self.create_resource(vals, type_selection)
         res_id = self._compute_id(base_resource, type_selection)

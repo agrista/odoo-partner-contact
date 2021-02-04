@@ -1,10 +1,10 @@
-# Copyright 2013-2017 Therp BV <http://therp.nl>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# Copyright 2013-2020 Therp BV <https://therp.nl>.
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 """Support connections between partners."""
 import numbers
 
 from odoo import _, api, exceptions, fields, models
-from odoo.osv.expression import FALSE_LEAF, OR, is_leaf
+from odoo.osv.expression import is_leaf, OR, FALSE_LEAF
 
 
 class ResPartner(models.Model):
@@ -29,24 +29,24 @@ class ResPartner(models.Model):
     )
     search_relation_type_id = fields.Many2one(
         comodel_name="res.partner.relation.type.selection",
-        compute=lambda self: self.update({"search_relation_type_id": None}),
+        compute=lambda self: None,
         search="_search_relation_type_id",
         string="Has relation of type",
     )
     search_relation_partner_id = fields.Many2one(
         comodel_name="res.partner",
-        compute=lambda self: self.update({"search_relation_partner_id": None}),
+        compute=lambda self: None,
         search="_search_related_partner_id",
         string="Has relation with",
     )
     search_relation_date = fields.Date(
-        compute=lambda self: self.update({"search_relation_date": None}),
+        compute=lambda self: None,
         search="_search_relation_date",
         string="Relation valid",
     )
     search_relation_partner_category_id = fields.Many2one(
         comodel_name="res.partner.category",
-        compute=lambda self: self.update({"search_relation_partner_category_id": None}),
+        compute=lambda self: None,
         search="_search_related_partner_category_id",
         string="Has relation with a partner in category",
     )
@@ -112,7 +112,7 @@ class ResPartner(models.Model):
         return [("relation_all_ids.other_partner_id", operator, value)]
 
     @api.model
-    def _search_relation_date(self, operator, value):
+    def _search_relation_date(self, _operator, value):
         """Look only for relations valid at date of search."""
         # pylint: disable=no-self-use
         return [
@@ -132,77 +132,62 @@ class ResPartner(models.Model):
         return [("relation_all_ids.other_partner_id.category_id", operator, value)]
 
     @api.model
-    def search(self, args, offset=0, limit=None, order=None, count=False):
-        """Inject searching for current relation date if we search for
-        relation properties and no explicit date was given.
-        """
+    def search(self, args, **kwargs):
+        """Handle searches that are based on the relations of the partner."""
         # pylint: disable=arguments-differ
-        # pylint: disable=no-value-for-parameter
-        date_args = []
-        for arg in args:
-            if (
+        def is_relation_search_arg(arg):
+            """Check whether search argument is a search on relations."""
+            return (
                 is_leaf(arg)
                 and isinstance(arg[0], str)
                 and arg[0].startswith("search_relation")
-            ):
+            )
+
+        contains_relation_search = False
+        contains_date_search = False
+        for arg in args:
+            if is_relation_search_arg(arg):
+                contains_relation_search = True
                 if arg[0] == "search_relation_date":
-                    date_args = []
-                    break
-                if not date_args:
-                    date_args = [("search_relation_date", "=", fields.Date.today())]
-        # because of auto_join, we have to do the active test by hand
+                    contains_date_search = True
+        date_args = []
         active_args = []
-        if self.env.context.get("active_test", True):
-            for arg in args:
-                if (
-                    is_leaf(arg)
-                    and isinstance(arg[0], str)
-                    and arg[0].startswith("search_relation")
-                ):
-                    active_args = [("relation_all_ids.active", "=", True)]
-                    break
-        return super(ResPartner, self).search(
-            args + date_args + active_args,
-            offset=offset,
-            limit=limit,
-            order=order,
-            count=count,
-        )
+        if contains_relation_search:
+            if self.env.context.get("active_test", True):
+                # because of auto_join, we have to do the active test by hand
+                active_args = [("relation_all_ids.active", "=", True)]
+            if not contains_date_search:
+                # Only search in current relations.
+                date_args = [("search_relation_date", "=", fields.Date.today())]
+        return super().search(args + date_args + active_args, **kwargs)
 
     def get_partner_type(self):
         """Get partner type for relation.
-        :return: 'c' for company or 'p' for person
+        :return: 'c' for organisation or 'p' for person
         :rtype: str
         """
         self.ensure_one()
         return "c" if self.is_company else "p"
 
     def action_view_relations(self):
-        for contact in self:
-            relation_model = self.env["res.partner.relation.all"]
-            relation_ids = relation_model.search(
-                [
-                    "|",
-                    ("this_partner_id", "=", contact.id),
-                    ("other_partner_id", "=", contact.id),
-                ]
+        """Handle button to show relations for partner."""
+        self.ensure_one()
+        action = self.env.ref(
+            "partner_multi_relation.action_res_partner_relation_all"
+        ).read()[0]
+        action["domain"] = [("id", "in", self.relation_all_ids.ids)]
+        context = action.get("context", "{}")
+        if "search_default_this_partner_id" not in context:  # Prevent duplicate add.
+            extra_context = str(
+                {
+                    "search_default_this_partner_id": self.id,
+                    "default_this_partner_id": self.id,
+                    "active_model": "res.partner",
+                    "active_id": self.id,
+                    "active_ids": [self.id],
+                    "active_test": False,
+                }
             )
-            action = self.env.ref(
-                "partner_multi_relation.action_res_partner_relation_all"
-            ).read()[0]
-            action["domain"] = [("id", "in", relation_ids.ids)]
-            context = action.get("context", "{}").strip()[1:-1]
-            elements = context.split(",") if context else []
-            to_add = [
-                """'search_default_this_partner_id': {0},
-                        'default_this_partner_id': {0},
-                        'active_model': 'res.partner',
-                        'active_id': {0},
-                        'active_ids': [{0}],
-                        'active_test': False""".format(
-                    contact.id
-                )
-            ]
-            context = "{" + ", ".join(elements + to_add) + "}"
-            action["context"] = context
-            return action
+            context = context[:-1] + ", " + extra_context[1:]
+        action["context"] = context
+        return action
