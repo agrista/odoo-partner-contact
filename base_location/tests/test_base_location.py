@@ -122,6 +122,10 @@ class TestBaseLocation(common.SavepointCase):
             self.partner_obj.create(
                 {"name": "P1", "zip_id": self.barcelona.id, "city_id": False}
             )
+        with self.assertRaises(ValidationError):
+            self.partner_obj.create(
+                {"name": "P1", "zip_id": self.barcelona.id, "zip": False}
+            )
 
     def test_writing_company(self):
         self.company.zip_id = self.barcelona
@@ -199,6 +203,29 @@ class TestBaseLocation(common.SavepointCase):
         self.company.state_id = self.state_bcn
         self.company._onchange_state_id()
         self.assertEqual(self.company.country_id, self.company.state_id.country_id)
+
+    def test_partner_address_field_sync(self):
+        """Test that zip_id is correctly synced with parent of contact addresses"""
+        parent = self.env["res.partner"].create(
+            {
+                "name": "ACME Inc.",
+                "is_company": True,
+                "street": "123 Fake St.",
+                "city": "Springfield",
+                "state_id": self.barcelona.state_id.id,
+                "country_id": self.barcelona.country_id.id,
+                "zip_id": self.barcelona.id,
+            }
+        )
+        contact = self.env["res.partner"].create(
+            {
+                "name": "John Doe",
+                "type": "contact",
+                "parent_id": parent.id,
+            }
+        )
+        parent.zip_id = self.lausanne
+        self.assertEqual(contact.zip_id, self.lausanne, "Contact should be synced")
 
     def test_display_name(self):
         """Test if the display_name is stored and computed properly"""
