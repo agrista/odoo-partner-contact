@@ -52,6 +52,11 @@ This module depends on ``base_tier_validation``. You can find it at
 Usage
 =====
 
+Before using, check Contact Stages configuration,
+to ensure that the default stage has the "Related State" field
+set to "To Approve".
+For example, having the "Draft" stage the default ensures this.
+
 A regular user creates a new Contact and sends it for approval:
 
 #. Create a Contact triggering at least one "Tier Definition".
@@ -110,6 +115,14 @@ This module is maintained by the OCA.
 OCA, or the Odoo Community Association, is a nonprofit organization whose
 mission is to support the collaborative development of Odoo features and
 promote its widespread use.
+
+.. |maintainer-dreispt| image:: https://github.com/dreispt.png?size=40px
+    :target: https://github.com/dreispt
+    :alt: dreispt
+
+Current `maintainer <https://odoo-community.org/page/maintainer-role>`__:
+
+|maintainer-dreispt| 
 
 This module is part of the `OCA/partner-contact <https://github.com/OCA/partner-contact/tree/14.0/partner_tier_validation>`_ project on GitHub.
 
