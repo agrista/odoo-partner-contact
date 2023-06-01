@@ -24,6 +24,7 @@ addon | version | maintainers | summary
 [base_country_state_translatable](base_country_state_translatable/) | 16.0.1.0.0 |  | Translate Country States
 [base_location](base_location/) | 16.0.1.0.1 | [![pedrobaeza](https://github.com/pedrobaeza.png?size=30px)](https://github.com/pedrobaeza) | Enhanced zip/npa management system
 [base_location_geonames_import](base_location_geonames_import/) | 16.0.1.0.0 |  | Import zip entries from Geonames
+[base_partner_company_group](base_partner_company_group/) | 16.0.1.0.0 |  | Adds the possibility to add a company group to a company
 [base_partner_sequence](base_partner_sequence/) | 16.0.1.0.0 |  | Sets customer's code from a sequence
 [partner_accreditation](partner_accreditation/) | 16.0.1.0.0 | [![victor-champonnois](https://github.com/victor-champonnois.png?size=30px)](https://github.com/victor-champonnois) | Add Accreditation to Partners
 [partner_address_street3](partner_address_street3/) | 16.0.1.0.0 |  | Add a third address line on partners
@@ -50,6 +51,7 @@ addon | version | maintainers | summary
 [partner_manual_rank](partner_manual_rank/) | 16.0.1.0.1 | [![luisg123v](https://github.com/luisg123v.png?size=30px)](https://github.com/luisg123v) [![frahikLV](https://github.com/frahikLV.png?size=30px)](https://github.com/frahikLV) | Be able to manually flag partners as customer or supplier.
 [partner_middlename](partner_middlename/) | 16.0.1.0.0 |  | Have split Middle
 [partner_multi_relation](partner_multi_relation/) | 16.0.1.0.0 |  | Partner Relations
+[partner_ref_unique](partner_ref_unique/) | 16.0.1.0.0 |  | Add an unique constraint to partner ref field
 [partner_second_lastname](partner_second_lastname/) | 16.0.1.0.1 |  | Have split first and second lastnames
 [partner_tz](partner_tz/) | 16.0.1.0.0 |  | Remove partner timezone default value and display on form
 [partner_vat_unique](partner_vat_unique/) | 16.0.1.0.0 |  | Module to make the VAT number unique for customers and suppliers.
