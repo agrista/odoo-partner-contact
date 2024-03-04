@@ -9,18 +9,7 @@ from odoo.exceptions import ValidationError
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-<<<<<<< HEAD
     @api.constrains("ref", "is_company", "company_id")
-=======
-    # This related is needed in order to trigger the check when changing the
-    # value on res.company
-    partner_ref_unique = fields.Selection(
-        related='company_id.partner_ref_unique', store=True,
-    )
-
-    @api.multi
-    @api.constrains('ref', 'is_company', 'company_id', 'partner_ref_unique')
->>>>>>> 55fd4e49b (Store partner_ref_unique to allow triggering the error updating res.company)
     def _check_ref(self):
         for partner in self.filtered("ref"):
             # If the company is not defined in the partner, take current user company

@@ -49,19 +49,13 @@ msgid "Partners"
 msgstr ""
 
 #. module: partner_ref_unique
-<<<<<<< HEAD
 #. odoo-python
 #: code:addons/partner_ref_unique/models/res_partner.py:0
-=======
-#: code:addons/partner_ref_unique/models/res_partner.py:37
->>>>>>> 55fd4e49b (Store partner_ref_unique to allow triggering the error updating res.company)
 #, python-format
 msgid "This reference is equal to partner '%s'"
 msgstr ""
 
 #. module: partner_ref_unique
 #: model:ir.model.fields,field_description:partner_ref_unique.field_res_company__partner_ref_unique
-#: model:ir.model.fields,field_description:partner_ref_unique.field_res_partner__partner_ref_unique
-#: model:ir.model.fields,field_description:partner_ref_unique.field_res_users__partner_ref_unique
 msgid "Unique partner reference for"
 msgstr ""
